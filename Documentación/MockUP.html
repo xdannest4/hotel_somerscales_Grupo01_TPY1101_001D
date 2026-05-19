@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe - Somerscales Heritage Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marine: '#173a5a',     /* Deep Ocean Blue */
+                        terracotta: '#a43838', /* Heritage Red */
+                        gold: '#cfa054',       /* Antique Gold */
+                        cream: '#f9f6f0',      /* Warm White/Cream */
+                        surface: '#ffffff',    /* Card White */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Clean scrollbar for lists */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .hidden-view { display: none !important; }
+        
+        /* Wireframe Placeholder cross pattern */
+        .placeholder-cross {
+            position: relative;
+        }
+        .placeholder-cross::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: 0.15;
+            background: 
+                linear-gradient(to bottom right, transparent 49%, currentColor 49%, currentColor 51%, transparent 51%), 
+                linear-gradient(to top right, transparent 49%, currentColor 49%, currentColor 51%, transparent 51%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-cream text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <div class="bg-slate-900 text-slate-300 p-3 text-center text-sm shadow-md flex justify-center space-x-6 z-50 sticky top-0 font-medium tracking-wide">
+        <span class="text-white mr-4">PROTOTYPE NAV:</span>
+        <button onclick="switchView('login')" class="hover:text-gold transition">1. Login</button>
+        <button onclick="switchView('dashboard')" class="hover:text-gold transition">2. Dashboard</button>
+        <button onclick="switchView('roles')" class="hover:text-gold transition">3. Roles & Perms</button>
+        <button onclick="switchView('profiles')" class="hover:text-gold transition">4. Profiles List</button>
+        <button onclick="switchView('form')" class="hover:text-gold transition">5. Profile Form</button>
+    </div>
+
+    <div id="view-login" class="flex-grow flex items-center justify-center p-6">
+        <div class="w-full max-w-sm p-10 bg-surface rounded-2xl shadow-xl border border-slate-100">
+            <div class="flex flex-col items-center mb-10">
+                <div class="w-24 h-24 bg-slate-100 rounded-full mb-6 flex items-center justify-center shadow-inner border border-slate-200 text-slate-300">
+                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+                <div class="h-8 w-48 bg-marine rounded"></div>
+            </div>
+            
+            <form class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email</label>
+                    <input type="email" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine transition" placeholder="Enter email">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
+                    <input type="password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine transition" placeholder="••••••••">
+                </div>
+                <button type="button" onclick="switchView('dashboard')" class="w-full bg-terracotta hover:bg-red-800 text-white font-semibold py-3 rounded-full shadow-md hover:shadow-lg transition duration-200 mt-4">
+                    Button
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <header id="shared-header" class="hidden-view bg-surface border-b border-slate-200 px-8 py-4 flex items-center justify-between shadow-sm shrink-0">
+        <div class="flex items-center space-x-12">
+            <div class="font-black text-2xl text-marine tracking-widest uppercase">LOGO</div>
+            <nav class="hidden md:flex space-x-8 text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
+                <a href="#" onclick="switchView('dashboard')" class="text-marine border-b-2 border-terracotta pb-1">Dashboard</a>
+                <a href="#" onclick="switchView('roles')" class="hover:text-marine transition pb-1">Roles & Permissions</a>
+                <a href="#" onclick="switchView('profiles')" class="hover:text-marine transition pb-1">Profiles</a>
+            </nav>
+        </div>
+        <div class="flex items-center space-x-6">
+            <div class="relative hidden sm:block">
+                <input type="text" placeholder="Search..." class="bg-slate-100 border border-slate-200 text-sm rounded-full pl-5 pr-10 py-2 w-64 focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                <svg class="w-4 h-4 text-slate-400 absolute right-4 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 cursor-pointer hover:bg-slate-200 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </div>
+        </div>
+    </header>
+
+    <main id="view-dashboard" class="hidden-view p-8 max-w-[1400px] mx-auto w-full flex-grow flex flex-col space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="lg:col-span-3 bg-marine rounded-xl h-48 flex items-center justify-center shadow-md text-white placeholder-cross"></div>
+            <div class="lg:col-span-1 bg-surface border border-slate-200 rounded-xl h-48 shadow-sm text-slate-400 placeholder-cross"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
+            <div class="lg:col-span-2 grid grid-cols-2 gap-6">
+                <div class="bg-surface border border-slate-200 rounded-xl p-6 shadow-sm flex items-center justify-center space-x-8">
+                    <div class="w-32 h-32 rounded-full border-[16px] border-marine border-t-terracotta border-l-terracotta relative"></div>
+                    <div class="w-20 h-20 rounded-full border-[10px] border-slate-100 border-r-gold"></div>
+                </div>
+                <div class="bg-surface border border-slate-200 rounded-xl p-6 shadow-sm flex items-end justify-between space-x-2 pt-12">
+                    <div class="w-full bg-slate-200 h-[30%] rounded-t"></div>
+                    <div class="w-full bg-marine h-[80%] rounded-t"></div>
+                    <div class="w-full bg-slate-200 h-[45%] rounded-t"></div>
+                    <div class="w-full bg-gold h-[60%] rounded-t"></div>
+                    <div class="w-full bg-slate-200 h-[20%] rounded-t"></div>
+                    <div class="w-full bg-marine h-[95%] rounded-t"></div>
+                    <div class="w-full bg-terracotta h-[50%] rounded-t"></div>
+                    <div class="w-full bg-slate-200 h-[75%] rounded-t"></div>
+                </div>
+                <div class="bg-surface border border-slate-200 rounded-xl p-6 shadow-sm flex items-end justify-between space-x-2 pt-12">
+                    <div class="w-full bg-terracotta h-[60%] rounded-t"></div>
+                    <div class="w-full bg-slate-200 h-[40%] rounded-t"></div>
+                    <div class="w-full bg-marine h-[90%] rounded-t"></div>
+                    <div class="w-full bg-slate-200 h-[55%] rounded-t"></div>
+                    <div class="w-full bg-gold h-[30%] rounded-t"></div>
+                    <div class="w-full bg-slate-200 h-[80%] rounded-t"></div>
+                    <div class="w-full bg-marine h-[50%] rounded-t"></div>
+                    <div class="w-full bg-slate-200 h-[70%] rounded-t"></div>
+                </div>
+                <div class="bg-surface border border-slate-200 rounded-xl p-6 shadow-sm flex items-center justify-center space-x-8">
+                    <div class="w-20 h-20 rounded-full border-[10px] border-slate-100 border-b-marine"></div>
+                    <div class="w-32 h-32 rounded-full border-[16px] border-terracotta border-l-gold border-b-gold relative"></div>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-1 bg-surface border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col space-y-5">
+                <div class="h-4 w-1/2 bg-slate-200 rounded mb-4"></div>
+                
+                <script>
+                    for(let i=0; i<8; i++) {
+                        document.write(`
+                        <div class="flex items-center space-x-4 pb-4 border-b border-slate-50 last:border-0 last:pb-0">
+                            <div class="w-12 h-10 rounded bg-slate-100 border border-slate-200"></div>
+                            <div class="flex-1 space-y-2">
+                                <div class="h-2.5 w-full bg-slate-200 rounded"></div>
+                                <div class="h-2.5 w-2/3 bg-slate-100 rounded"></div>
+                            </div>
+                        </div>`);
+                    }
+                </script>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-roles" class="hidden-view p-8 max-w-[1400px] mx-auto w-full flex-grow grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-slate-300 rounded-xl h-[600px] shadow-inner text-slate-500 placeholder-cross"></div>
+        
+        <div class="bg-surface border border-slate-200 rounded-xl p-8 shadow-sm flex flex-col h-[600px]">
+            <div class="space-y-4 mb-6 shrink-0">
+                <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine" placeholder="Field">
+                <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine" placeholder="Field">
+                <div class="pt-2 flex justify-center">
+                    <button class="w-48 bg-surface border-2 border-marine text-marine font-bold py-2.5 rounded-full shadow-sm hover:bg-marine hover:text-white transition uppercase text-sm tracking-wider">Button</button>
+                </div>
+            </div>
+            
+            <div class="flex-grow overflow-y-auto space-y-3 pr-2 border-t border-slate-100 pt-4">
+                <script>
+                    for(let i=0; i<10; i++) {
+                        let active = i % 3 !== 0;
+                        let toggleBg = active ? 'bg-terracotta' : 'bg-slate-200';
+                        let toggleDot = active ? 'right-1' : 'left-1';
+                        document.write(`
+                        <div class="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition cursor-pointer group border border-transparent hover:border-slate-100">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:text-marine transition">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <div class="h-2.5 w-32 bg-slate-300 rounded"></div>
+                                    <div class="h-2 w-48 bg-slate-200 rounded"></div>
+                                </div>
+                            </div>
+                            <div class="w-12 h-6 ${toggleBg} rounded-full relative transition-colors duration-300 shadow-inner">
+                                <div class="w-4 h-4 bg-white rounded-full absolute ${toggleDot} top-1 shadow transition-all duration-300"></div>
+                            </div>
+                        </div>`);
+                    }
+                </script>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-profiles" class="hidden-view p-8 max-w-[1400px] mx-auto w-full flex-grow flex flex-col">
+        <div class="flex justify-end mb-6">
+            <button class="bg-surface border-2 border-marine text-marine hover:bg-marine hover:text-white px-8 py-2.5 rounded-full text-sm font-bold tracking-wider uppercase transition shadow-sm">
+                Button
+            </button>
+        </div>
+        
+        <div class="bg-surface border border-slate-200 rounded-xl shadow-sm overflow-hidden flex-grow">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 uppercase text-xs font-bold border-b border-slate-200 tracking-wider">
+                    <tr>
+                        <th class="px-8 py-5">ID</th>
+                        <th class="px-8 py-5">Name</th>
+                        <th class="px-8 py-5">Role</th>
+                        <th class="px-8 py-5">Last Login</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr class="hover:bg-cream transition group">
+                        <td class="px-8 py-5 font-mono text-xs text-slate-400">#001</td>
+                        <td class="px-8 py-5 flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-200"></div>
+                            <span class="font-semibold text-slate-800">John Doe</span>
+                        </td>
+                        <td class="px-8 py-5"><span class="px-3 py-1 bg-marine text-white text-[10px] uppercase font-bold tracking-wider rounded">Admin</span></td>
+                        <td class="px-8 py-5">
+                            <div class="w-24 h-1 bg-slate-200 rounded overflow-hidden"><div class="w-3/4 h-full bg-marine"></div></div>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-cream transition group">
+                        <td class="px-8 py-5 font-mono text-xs text-slate-400">#002</td>
+                        <td class="px-8 py-5 flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-200"></div>
+                            <span class="font-semibold text-slate-800">Jane Smith</span>
+                        </td>
+                        <td class="px-8 py-5"><span class="px-3 py-1 bg-terracotta text-white text-[10px] uppercase font-bold tracking-wider rounded">Editor</span></td>
+                        <td class="px-8 py-5">
+                            <div class="w-24 h-1 bg-slate-200 rounded overflow-hidden"><div class="w-1/2 h-full bg-terracotta"></div></div>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-cream transition group">
+                        <td class="px-8 py-5 font-mono text-xs text-slate-400">#003</td>
+                        <td class="px-8 py-5 flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-200"></div>
+                            <span class="font-semibold text-slate-800">Michael Brown</span>
+                        </td>
+                        <td class="px-8 py-5"><span class="px-3 py-1 bg-gold text-white text-[10px] uppercase font-bold tracking-wider rounded">Guest</span></td>
+                        <td class="px-8 py-5">
+                            <div class="w-24 h-1 bg-slate-200 rounded overflow-hidden"><div class="w-1/4 h-full bg-gold"></div></div>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-cream transition group">
+                        <td class="px-8 py-5 font-mono text-xs text-slate-400">#004</td>
+                        <td class="px-8 py-5 flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-200"></div>
+                            <span class="font-semibold text-slate-800">Sarah Connor</span>
+                        </td>
+                        <td class="px-8 py-5"><span class="px-3 py-1 bg-marine text-white text-[10px] uppercase font-bold tracking-wider rounded">Admin</span></td>
+                        <td class="px-8 py-5">
+                            <div class="w-24 h-1 bg-slate-200 rounded overflow-hidden"><div class="w-full h-full bg-marine"></div></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <main id="view-form" class="hidden-view p-8 max-w-4xl mx-auto w-full flex-grow">
+        <div class="bg-surface border border-slate-200 rounded-xl p-12 shadow-sm">
+            <div class="flex items-center space-x-8 mb-12">
+                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center shadow-inner border border-slate-200 text-slate-300">
+                    <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+                <div class="flex-grow">
+                    <div class="h-10 bg-marine rounded w-2/3"></div>
+                </div>
+            </div>
+            
+            <form class="space-y-6 max-w-lg mx-auto">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Field</label>
+                    <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Field</label>
+                    <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Field</label>
+                    <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Field</label>
+                    <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Field</label>
+                    <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine transition">
+                </div>
+                
+                <div class="pt-8 flex justify-center">
+                    <button type="button" class="w-48 bg-surface border-2 border-marine text-marine hover:bg-marine hover:text-white font-bold py-3 rounded-full shadow-sm hover:shadow-md transition duration-200 uppercase text-sm tracking-wider">
+                        Button
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const views = ['login', 'dashboard', 'roles', 'profiles', 'form'];
+        
+        function switchView(viewName) {
+            // Hide all views
+            views.forEach(v => {
+                document.getElementById('view-' + v).classList.add('hidden-view');
+            });
+            
+            // Show requested view
+            document.getElementById('view-' + viewName).classList.remove('hidden-view');
+            
+            // Handle header visibility (hidden on login)
+            const header = document.getElementById('shared-header');
+            if(viewName === 'login') {
+                header.classList.add('hidden-view');
+            } else {
+                header.classList.remove('hidden-view');
+            }
+            
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe — Somerscales · Gestión Interna (mobile-first)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marine: '#173a5a',
+                        'marine-soft': '#1f4a72',
+                        'marine-deep': '#0e2640',
+                        terracotta: '#a43838',
+                        gold: '#cfa054',
+                        cream: '#f9f6f0',
+                        surface: '#ffffff',
+                        ink: '#0f1d2e',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --color-bg: #f9f6f0;
+            --color-bg-elev: #ffffff;
+            --color-fg: #0f1d2e;
+            --color-fg-soft: #475569;
+            --color-border: #e2e8f0;
+        }
+        [data-theme="dark"] {
+            --color-bg: #0b1c2e;
+            --color-bg-elev: #173a5a;
+            --color-fg: #f9f6f0;
+            --color-fg-soft: #cbd5e1;
+            --color-border: #1e3a5a;
+        }
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hidden-view { display: none !important; }
+        .placeholder-cross { position: relative; }
+        .placeholder-cross::after {
+            content: ""; position: absolute; inset: 0; opacity: 0.15;
+            background:
+                linear-gradient(to bottom right, transparent 49%, currentColor 49%, currentColor 51%, transparent 51%),
+                linear-gradient(to top right, transparent 49%, currentColor 49%, currentColor 51%, transparent 51%);
+            pointer-events: none;
+        }
+        .logo-wordmark svg path { fill: #173a5a; transition: fill 200ms; }
+        .scroll-snap { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+        .scroll-snap > * { scroll-snap-align: start; }
+        .drawer-enter { animation: drawerIn 220ms cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes drawerIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        .drawer-backdrop-enter { animation: backdropIn 220ms ease-out; }
+        @keyframes backdropIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-enter { animation: modalIn 180ms ease-out; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body class="bg-cream text-ink antialiased min-h-screen flex flex-col">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         LOCKED: 2026-05-16 — do not edit without operator approval.
+         Source of truth for the v1.1 FE revamp. See docs/plan/archive/task018.md
+         and the derived task019–031 playbooks under docs/plan/.
+         Iteration history kept in docs/logs/log-2026_05_16-*.md.
+
+         Iteration 2026-05-16 #1: dropped bottom tab bar (mobile-app idiom).
+         Mobile nav is now a hamburger-triggered side drawer that carries
+         all nav items + account actions. This is a website that prioritizes
+         mobile usage, NOT a mobile app. See feedback memory
+         feedback_website_not_app.md.
+
+         Iteration 2026-05-16 #2: added Calendario as 5th nav slot (top nav
+         + drawer + dedicated /calendar view). Room calendar rule changed
+         from "max 3 events per room" to "all events for rooms with any
+         check-in/out in the next 7 days; rooms with zero events hidden."
+         Dedicated /calendar page has a 7/14/30-day window selector.
+
+         Iteration 2026-05-16 #3:
+         - Sheet edit/summary: dropped per-entry chronological journal,
+           replaced with a single wide "Notas" textarea.
+         - Dashboard KPI hero: 3 tiles → 2 tiles. Tile 1 (Ocupación %) →
+           Disponibilidad with 3 absolute counts (Hoy / Esta semana / Este
+           mes; max free rooms per window). Tile 3 (Check-ins pendientes)
+           removed.
+         - Two new dashboard widgets: Huéspedes actuales (in-house guests
+           with rooms + checkout date) and Huéspedes recientes (last 10
+           checked-out). Multi-room reservations are grouped per stay.
+         - Standardized room labels everywhere as H# (was mixed HA# / H#).
+           BE will strip leading "A" from Cloudbeds source; FE renders H#.
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ─── PROTOTYPE DEV NAV (strip on production) ──────────────────────────── -->
+    <div class="bg-ink text-slate-300 px-3 py-2 text-center text-[11px] flex flex-wrap justify-center gap-x-3 gap-y-1 sticky top-0 z-[60] font-medium tracking-wide shadow-md">
+        <span class="text-white font-bold">PROTO →</span>
+        <button onclick="switchView('login')" class="hover:text-gold transition">login</button>
+        <button onclick="switchView('dashboard')" class="hover:text-gold transition">dashboard</button>
+        <button onclick="switchView('calendar')" class="hover:text-gold transition">calendar</button>
+        <button onclick="switchView('roles')" class="hover:text-gold transition">roles</button>
+        <button onclick="switchView('profiles')" class="hover:text-gold transition">profiles</button>
+        <button onclick="openCreateUserModal()" class="hover:text-gold transition">+ create user</button>
+        <button onclick="switchView('sheets')" class="hover:text-gold transition">sheets</button>
+        <button onclick="switchView('sheet-edit')" class="hover:text-gold transition">ficha edit</button>
+        <button onclick="switchView('sheet-summary')" class="hover:text-gold transition">ficha read</button>
+        <button onclick="switchView('settings-global')" class="hover:text-gold transition">⚙ global</button>
+        <button onclick="switchView('user-settings')" class="hover:text-gold transition">my profile</button>
+        <button onclick="switchView('client-detail')" class="hover:text-gold transition">client detail</button>
+        <button onclick="openNavDrawer()" class="hover:text-gold transition">☰ open mobile nav</button>
+    </div>
+
+    <!-- ─── LOGIN ────────────────────────────────────────────────────────────── -->
+    <div id="view-login" class="flex-grow flex items-center justify-center p-6 bg-cream">
+        <div class="w-full max-w-sm p-8 sm:p-10 bg-surface rounded-2xl shadow-xl border border-slate-100">
+            <div class="flex flex-col items-center mb-8">
+                <div class="w-20 h-20 bg-marine rounded-full mb-5 flex items-center justify-center shadow-md">
+                    <span class="font-serif text-white text-4xl leading-none -mt-1">S</span>
+                </div>
+                <h1 class="font-serif text-marine text-3xl tracking-wide">Somerscales</h1>
+                <p class="text-marine/60 text-xs uppercase tracking-[0.25em] mt-1">Gestión Interna</p>
+            </div>
+
+            <form class="space-y-5" onsubmit="event.preventDefault(); switchView('dashboard');">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Email</label>
+                    <input type="email" required class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine transition" placeholder="tu@hotel.cl">
+                </div>
+                <div>
+                    <div class="flex justify-between items-baseline mb-2">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Contraseña</label>
+                        <a href="#" class="text-xs text-marine hover:underline">Olvidé mi contraseña</a>
+                    </div>
+                    <input type="password" required class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine transition" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-marine hover:bg-marine-soft text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition duration-200 mt-2">
+                    Ingresar
+                </button>
+            </form>
+
+            <p class="text-center text-[11px] text-slate-400 mt-8">Hotel Casa Somerscales · Valparaíso</p>
+        </div>
+    </div>
+
+    <!-- ─── SHARED APP SHELL HEADER (post-login) ─────────────────────────────── -->
+    <header id="shared-header" class="hidden-view bg-surface border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm shrink-0 sticky top-9 z-40">
+        <div class="flex items-center gap-3 sm:gap-6 lg:gap-10 min-w-0">
+            <!-- Mobile: hamburger icon -->
+            <button onclick="openNavDrawer()" class="md:hidden p-1 -ml-1 text-marine hover:text-terracotta transition" aria-label="Abrir menú">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+
+            <!-- Mobile: 40×40 marine S badge -->
+            <div class="md:hidden w-10 h-10 bg-marine rounded-full flex items-center justify-center shrink-0">
+                <span class="font-serif text-white text-xl leading-none -mt-0.5">S</span>
+            </div>
+
+            <!-- Desktop: marine wordmark -->
+            <div class="hidden md:flex items-baseline gap-2">
+                <div class="w-9 h-9 bg-marine rounded-full flex items-center justify-center shrink-0">
+                    <span class="font-serif text-white text-lg leading-none -mt-0.5">S</span>
+                </div>
+                <div class="font-serif text-marine text-xl tracking-wide">Somerscales</div>
+            </div>
+
+            <!-- Desktop top nav -->
+            <nav class="hidden md:flex items-center gap-5 lg:gap-7 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                <a href="#" onclick="event.preventDefault(); switchView('dashboard')" data-nav="dashboard" class="text-marine border-b-2 border-terracotta pb-1">Dashboard</a>
+                <a href="#" onclick="event.preventDefault(); switchView('calendar')" data-nav="calendar" class="hover:text-marine transition pb-1 border-b-2 border-transparent">Calendario</a>
+                <a href="#" onclick="event.preventDefault(); switchView('roles')" data-nav="roles" class="hover:text-marine transition pb-1 border-b-2 border-transparent">Roles</a>
+                <a href="#" onclick="event.preventDefault(); switchView('profiles')" data-nav="profiles" class="hover:text-marine transition pb-1 border-b-2 border-transparent">Perfiles</a>
+                <a href="#" onclick="event.preventDefault(); switchView('sheets')" data-nav="sheets" class="hover:text-marine transition pb-1 border-b-2 border-transparent">Fichas</a>
+            </nav>
+        </div>
+
+        <div class="flex items-center gap-3 sm:gap-4">
+            <!-- Search: icon-only on mobile, full on desktop -->
+            <button class="md:hidden p-1 text-slate-500 hover:text-marine transition" aria-label="Buscar">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </button>
+            <div class="relative hidden md:block">
+                <input type="text" placeholder="Buscar huésped, reserva…" class="bg-cream border border-slate-200 text-sm rounded-full pl-5 pr-10 py-2 w-56 lg:w-72 focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                <svg class="w-4 h-4 text-slate-400 absolute right-4 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+
+            <!-- Settings (gear) — admin only in production -->
+            <button onclick="switchView('settings-global')" class="p-1 text-slate-500 hover:text-marine transition" aria-label="Settings globales">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+
+            <!-- Desktop avatar dropdown trigger (mobile uses More drawer) -->
+            <button onclick="switchView('user-settings')" class="hidden md:flex w-9 h-9 rounded-full bg-gold/20 border border-gold/40 items-center justify-center text-marine font-bold text-sm hover:ring-2 hover:ring-marine/30 transition" aria-label="Mi perfil">
+                MA
+            </button>
+        </div>
+    </header>
+
+    <!-- ─── DASHBOARD ────────────────────────────────────────────────────────── -->
+    <main id="view-dashboard" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <!-- KPI hero strip -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Tile 1: Disponibilidad por ventana (spans 2 cols on >=sm) -->
+            <div class="sm:col-span-2 bg-marine text-cream rounded-xl p-5 shadow-md">
+                <div class="flex items-baseline justify-between mb-4 gap-3">
+                    <p class="text-[10px] uppercase tracking-widest text-cream/70">Disponibilidad</p>
+                    <p class="text-xs text-cream/70 font-semibold">10 habitaciones totales</p>
+                </div>
+                <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-widest text-cream/60">Hoy</p>
+                        <p class="text-2xl sm:text-3xl font-serif font-bold mt-1">3<span class="text-base text-cream/50"> / 10</span></p>
+                        <p class="text-[10px] text-cream/50 mt-0.5">libres ahora</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase tracking-widest text-cream/60">Esta semana</p>
+                        <p class="text-2xl sm:text-3xl font-serif font-bold mt-1">7<span class="text-base text-cream/50"> / 10</span></p>
+                        <p class="text-[10px] text-cream/50 mt-0.5">máx libres / día</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase tracking-widest text-cream/60">Este mes</p>
+                        <p class="text-2xl sm:text-3xl font-serif font-bold mt-1">9<span class="text-base text-cream/50"> / 10</span></p>
+                        <p class="text-[10px] text-cream/50 mt-0.5">máx libres / día</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Tile 2: Reseñas -->
+            <div class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500">Reseñas este mes</p>
+                <p class="text-3xl font-serif font-bold text-marine mt-2">42</p>
+                <p class="text-xs text-slate-500 mt-1"><span class="text-terracotta font-semibold">8 negativas</span> · 30 positivas · 4 mixtas</p>
+            </div>
+        </section>
+
+        <!-- Widget grid: A B (leaderboards) | D (sentiment) | C (categories) | E (normalized) | F (room calendar) -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            <!-- Widget A: Most-visited leaderboard (vertical) -->
+            <div class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-serif text-marine text-lg">Huéspedes más frecuentes</h3>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-400">Top 5</span>
+                </div>
+                <ol class="space-y-3 text-sm">
+                    <script>
+                        const visited = [
+                            ['Ignacio Hume', 12, 'IH', 'gold'],
+                            ['Christina Avilés', 9, 'CA', 'marine'],
+                            ['Noah Pereira', 7, 'NP', 'terracotta'],
+                            ['Maria Bordeaux', 6, 'MB', 'marine'],
+                            ['John Dempsey', 5, 'JD', 'gold'],
+                        ];
+                        visited.forEach(([name, n, ini, color], i) => document.write(`
+                        <li class="flex items-center gap-3 hover:bg-cream rounded p-1 -mx-1 cursor-pointer" onclick="switchView('client-detail')">
+                            <span class="w-5 text-slate-400 font-mono text-xs text-right">${i+1}.</span>
+                            <span class="w-9 h-9 rounded-full bg-${color}/15 border border-${color}/30 flex items-center justify-center text-${color} font-bold text-xs shrink-0">${ini}</span>
+                            <span class="flex-1 font-medium text-ink truncate">${name}</span>
+                            <span class="text-xs text-slate-500 font-semibold">${n} visitas</span>
+                        </li>`));
+                    </script>
+                </ol>
+            </div>
+
+            <!-- Widget B: Most-spent leaderboard (vertical) -->
+            <div class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-serif text-marine text-lg">Mayor gasto</h3>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-400">Año 2026</span>
+                </div>
+                <ol class="space-y-3 text-sm">
+                    <script>
+                        const spent = [
+                            ['Elaine Korab', 'USD $2.840', 'EK', 'terracotta'],
+                            ['Nicolás Guerra', 'USD $1.920', 'NG', 'marine'],
+                            ['Ignacio Hume', 'CLP $1.450.000', 'IH', 'gold'],
+                            ['Maria Bordeaux', 'USD $1.105', 'MB', 'marine'],
+                            ['Sarah Vallve', 'USD $980', 'SV', 'gold'],
+                        ];
+                        spent.forEach(([name, amt, ini, color], i) => document.write(`
+                        <li class="flex items-center gap-3 hover:bg-cream rounded p-1 -mx-1 cursor-pointer" onclick="switchView('client-detail')">
+                            <span class="w-5 text-slate-400 font-mono text-xs text-right">${i+1}.</span>
+                            <span class="w-9 h-9 rounded-full bg-${color}/15 border border-${color}/30 flex items-center justify-center text-${color} font-bold text-xs shrink-0">${ini}</span>
+                            <span class="flex-1 font-medium text-ink truncate">${name}</span>
+                            <span class="text-xs text-slate-700 font-semibold">${amt}</span>
+                        </li>`));
+                    </script>
+                </ol>
+            </div>
+
+            <!-- Widget: Huéspedes actuales (en el hotel ahora) -->
+            <div class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-serif text-marine text-lg">Huéspedes actuales</h3>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-400">5 personas · 4 reservas</span>
+                </div>
+                <ul class="space-y-3 text-sm">
+                    <script>
+                        // Sample: rows are reservations grouped by guest. A guest can hold multiple rooms in the same stay.
+                        const currentGuests = [
+                            ['Ignacio Hume',     'IH', 'gold',       12, ['H5'],         'sale lun 19 may'],
+                            ['María Bordeaux',   'MB', 'marine',      6, ['H1'],         'sale mié 21 may'],
+                            ['Familia Ramírez',  'FR', 'terracotta',  4, ['H3','H4'],    'sale dom 18 may · 2 habs'],
+                            ['Nicolás Guerra',   'NG', 'marine',      1, ['H8'],         'sale sáb 17 may'],
+                        ];
+                        currentGuests.forEach(([name, ini, color, visits, rooms, leaving]) => document.write(`
+                        <li class="flex items-center gap-3 hover:bg-cream rounded p-1 -mx-1 cursor-pointer" onclick="switchView('client-detail')">
+                            <span class="w-9 h-9 rounded-full bg-${color}/15 border border-${color}/30 flex items-center justify-center text-${color} font-bold text-xs shrink-0">${ini}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-ink truncate">${name}</p>
+                                <p class="text-[11px] text-slate-500 truncate"><span class="font-mono font-bold text-marine">${rooms.join(' · ')}</span> · ${visits} visita${visits>1?'s':''}</p>
+                            </div>
+                            <span class="text-[11px] text-terracotta font-semibold shrink-0 text-right">${leaving}</span>
+                        </li>`));
+                    </script>
+                </ul>
+            </div>
+
+            <!-- Widget: Huéspedes recientes (últimos 10 en salir) -->
+            <div class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-serif text-marine text-lg">Huéspedes recientes</h3>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-400">Últimos 10</span>
+                </div>
+                <ul class="space-y-2.5 text-sm">
+                    <script>
+                        const recentGuests = [
+                            ['Elaine Korab',     'EK', 'terracotta', 3, ['H7'],        'salió ayer'],
+                            ['John Dempsey',     'JD', 'gold',       5, ['H4'],        'salió ayer'],
+                            ['Sarah Vallve',     'SV', 'gold',       2, ['H7'],        'salió hace 2 d'],
+                            ['Christina Avilés', 'CA', 'marine',     9, ['H6'],        'salió hace 3 d'],
+                            ['Grupo Pereira',    'GP', 'terracotta', 1, ['H2','H8','H9'], 'salió hace 4 d · 3 habs'],
+                            ['Noah Pereira',     'NP', 'terracotta', 7, ['H5'],        'salió hace 5 d'],
+                            ['Maria González',   'MG', 'marine',     2, ['H1'],        'salió hace 6 d'],
+                            ['Pedro Cortés',     'PC', 'gold',       1, ['H10'],       'salió hace 7 d'],
+                            ['Lucía Vidal',      'LV', 'marine',     4, ['H4'],        'salió hace 8 d'],
+                            ['Familia Soto',     'FS', 'terracotta', 2, ['H3','H8'],   'salió hace 9 d · 2 habs'],
+                        ];
+                        recentGuests.forEach(([name, ini, color, visits, rooms, when]) => document.write(`
+                        <li class="flex items-center gap-3 hover:bg-cream rounded p-1 -mx-1 cursor-pointer" onclick="switchView('client-detail')">
+                            <span class="w-8 h-8 rounded-full bg-${color}/15 border border-${color}/30 flex items-center justify-center text-${color} font-bold text-[10px] shrink-0">${ini}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-ink truncate text-[13px]">${name}</p>
+                                <p class="text-[11px] text-slate-500 truncate"><span class="font-mono font-bold text-marine">${rooms.join(' · ')}</span> · ${visits} visita${visits>1?'s':''}</p>
+                            </div>
+                            <span class="text-[10px] text-slate-400 shrink-0 text-right">${when}</span>
+                        </li>`));
+                    </script>
+                </ul>
+            </div>
+
+            <!-- Widget D: Comment stats (5 sentiment buckets, multi-label aware) -->
+            <div class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-serif text-marine text-lg">Sentimiento</h3>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-400" title="Una reseña puede contar en varios buckets">Multi-etiqueta</span>
+                </div>
+                <div class="space-y-2.5 text-sm">
+                    <div class="flex items-center gap-3"><span class="text-lg">😊</span><span class="flex-1 text-slate-700">Positivo</span><div class="w-28 h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:78%"></div></div><span class="w-8 text-right font-bold text-slate-700">28</span></div>
+                    <div class="flex items-center gap-3"><span class="text-lg">😞</span><span class="flex-1 text-slate-700">Negativo</span><div class="w-28 h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-terracotta" style="width:22%"></div></div><span class="w-8 text-right font-bold text-slate-700">8</span></div>
+                    <div class="flex items-center gap-3"><span class="text-lg">😐</span><span class="flex-1 text-slate-700">Neutro</span><div class="w-28 h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-slate-400" style="width:34%"></div></div><span class="w-8 text-right font-bold text-slate-700">12</span></div>
+                    <div class="flex items-center gap-3"><span class="text-lg">💡</span><span class="flex-1 text-slate-700">Mejora</span><div class="w-28 h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-gold" style="width:42%"></div></div><span class="w-8 text-right font-bold text-slate-700">15</span></div>
+                    <div class="flex items-center gap-3"><span class="text-lg">🚨</span><span class="flex-1 text-slate-700">Reclamo</span><div class="w-28 h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-marine" style="width:14%"></div></div><span class="w-8 text-right font-bold text-slate-700">5</span></div>
+                </div>
+            </div>
+
+            <!-- Widget C: Categorized comments (admin-defined chips) -->
+            <div class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-serif text-marine text-lg">Categorías</h3>
+                    <button class="text-[11px] text-marine hover:underline" onclick="switchView('settings-global')">+ Editar en Settings</button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1.5 bg-marine/10 text-marine rounded-full text-xs font-semibold border border-marine/20">Limpieza · 18</span>
+                    <span class="px-3 py-1.5 bg-gold/15 text-gold rounded-full text-xs font-semibold border border-gold/30">Desayuno · 14</span>
+                    <span class="px-3 py-1.5 bg-terracotta/10 text-terracotta rounded-full text-xs font-semibold border border-terracotta/20">Ruido · 9</span>
+                    <span class="px-3 py-1.5 bg-marine/10 text-marine rounded-full text-xs font-semibold border border-marine/20">Vista · 12</span>
+                    <span class="px-3 py-1.5 bg-marine/10 text-marine rounded-full text-xs font-semibold border border-marine/20">Atención · 22</span>
+                    <span class="px-3 py-1.5 bg-gold/15 text-gold rounded-full text-xs font-semibold border border-gold/30">Ubicación · 16</span>
+                    <span class="px-3 py-1.5 bg-terracotta/10 text-terracotta rounded-full text-xs font-semibold border border-terracotta/20">WiFi · 6</span>
+                    <span class="px-3 py-1.5 bg-marine/10 text-marine rounded-full text-xs font-semibold border border-marine/20">Patrimonio · 11</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-4">Las categorías se editan en Settings → Categorías. Gemini reclasifica automáticamente.</p>
+            </div>
+
+            <!-- Widget E: Normalized comments (AI-summarized clusters) -->
+            <div class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm md:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-serif text-marine text-lg">Comentarios normalizados</h3>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-400">Resumido por Gemini</span>
+                </div>
+                <ul class="divide-y divide-slate-100 text-sm">
+                    <li class="py-3 flex items-start gap-3 hover:bg-cream rounded px-2 -mx-2 cursor-pointer">
+                        <span class="px-2.5 py-0.5 bg-marine text-white rounded-full text-[11px] font-bold mt-0.5 shrink-0">14</span>
+                        <span class="flex-1">El desayuno continental es generoso y los huevos al gusto son destacados — varias reseñas mencionan calidad y horario flexible.</span>
+                        <svg class="w-4 h-4 text-slate-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </li>
+                    <li class="py-3 flex items-start gap-3 hover:bg-cream rounded px-2 -mx-2 cursor-pointer">
+                        <span class="px-2.5 py-0.5 bg-terracotta text-white rounded-full text-[11px] font-bold mt-0.5 shrink-0">9</span>
+                        <span class="flex-1">Ruido externo nocturno desde la calle Templeman afecta el descanso en habitaciones del frente (H1, H2, H3).</span>
+                        <svg class="w-4 h-4 text-slate-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </li>
+                    <li class="py-3 flex items-start gap-3 hover:bg-cream rounded px-2 -mx-2 cursor-pointer">
+                        <span class="px-2.5 py-0.5 bg-gold text-white rounded-full text-[11px] font-bold mt-0.5 shrink-0">11</span>
+                        <span class="flex-1">Vista al cerro Concepción y arquitectura patrimonial son muy valoradas — recomiendan fotografiar al amanecer.</span>
+                        <svg class="w-4 h-4 text-slate-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </li>
+                    <li class="py-3 flex items-start gap-3 hover:bg-cream rounded px-2 -mx-2 cursor-pointer">
+                        <span class="px-2.5 py-0.5 bg-marine text-white rounded-full text-[11px] font-bold mt-0.5 shrink-0">7</span>
+                        <span class="flex-1">El personal (especialmente recepción nocturna) es cálido y resolutivo — varios huéspedes recordaron nombres.</span>
+                        <svg class="w-4 h-4 text-slate-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </li>
+                    <li class="py-3 flex items-start gap-3 hover:bg-cream rounded px-2 -mx-2 cursor-pointer">
+                        <span class="px-2.5 py-0.5 bg-terracotta text-white rounded-full text-[11px] font-bold mt-0.5 shrink-0">5</span>
+                        <span class="flex-1">WiFi inestable en pisos superiores; sugieren reforzar el repetidor del segundo piso.</span>
+                        <svg class="w-4 h-4 text-slate-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Widget F: Room calendar grid (rooms with events in next 7 days; all events shown) -->
+            <div class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm md:col-span-2 lg:col-span-3">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="font-serif text-marine text-lg">Calendario por habitación</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Próximos 7 días · resumen</p>
+                    </div>
+                    <button onclick="switchView('calendar')" class="text-[11px] text-marine hover:underline font-bold uppercase tracking-wider">Ver completo →</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    <script>
+                        // Sample data — rooms with events in the next 7 days. Rooms without events are filtered out.
+                        // Production: BE returns events where check_in OR check_out is within next 7 days (Santiago tz).
+                        const weekRooms = [
+                            ['H1', [['hoy 14:00','M. Bordeaux','in'],['mié 21 may 11:00','M. Bordeaux','out'],['mié 21 may 16:00','I. Newton','in']]],
+                            ['H4', [['mañana 11:00','J. Dempsey','out'],['mañana 16:00','S. Vallve','in'],['vie 22 may 10:30','S. Vallve','out']]],
+                            ['H5', [['hoy 17:00','I. Hume','in'],['lun 19 may 11:00','I. Hume','out'],['lun 19 may 15:00','P. Soto','in'],['jue 22 may 11:00','P. Soto','out']]],
+                            ['H8', [['mañana 15:00','N. Guerra','in'],['sáb 17 may 11:00','N. Guerra','out']]],
+                            ['H9', [['jue 21 may 14:00','C. Avilés','in']]],
+                            ['H10', [['dom 18 may 14:00','M. Pereira','in'],['mar 20 may 11:00','M. Pereira','out']]],
+                            // H7 has no events in the next 7 days → filtered out below.
+                        ];
+                        weekRooms.filter(([_, events]) => events.length > 0).forEach(([room, events]) => {
+                            const rows = events.map(([when, who, kind]) => {
+                                const color = kind === 'in' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-terracotta bg-terracotta/5 border-terracotta/20';
+                                const arrow = kind === 'in' ? '→' : '←';
+                                return `<div class="flex items-center gap-2 text-[11px] px-2 py-1 rounded border ${color}">
+                                    <span class="font-mono">${arrow}</span>
+                                    <span class="flex-1 truncate"><span class="font-semibold">${when}</span> · ${who}</span>
+                                </div>`;
+                            }).join('');
+                            document.write(`
+                            <div onclick="switchView('calendar')" class="border border-slate-200 rounded-lg p-3 hover:border-marine hover:shadow-md transition cursor-pointer">
+                                <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                                    <span class="font-bold text-marine">${room}</span>
+                                    <span class="text-[10px] text-slate-400 uppercase tracking-wider">${events.length} evento${events.length>1?'s':''}</span>
+                                </div>
+                                <div class="space-y-1.5">${rows}</div>
+                            </div>`);
+                        });
+                    </script>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-4">Habitaciones sin eventos en los próximos 7 días se ocultan automáticamente. Datos sincronizados desde Cloudbeds los domingos.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- ─── CALENDAR (dedicated screen — full per-room week view) ────────────── -->
+    <main id="view-calendar" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div>
+                <h2 class="font-serif text-marine text-2xl">Calendario</h2>
+                <p class="text-sm text-slate-500 mt-1">Próximos 7 días · vie 16 may → jue 22 may</p>
+            </div>
+            <div class="flex gap-2">
+                <button class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-marine text-white rounded-full shadow-sm">7 días</button>
+                <button class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-surface text-slate-600 border border-slate-200 rounded-full hover:border-marine">14 días</button>
+                <button class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-surface text-slate-600 border border-slate-200 rounded-full hover:border-marine">30 días</button>
+            </div>
+        </div>
+
+        <!-- KPI strip: week-level summary -->
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-surface border border-slate-200 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500">Check-ins</p>
+                <p class="text-2xl font-serif font-bold text-marine mt-1">7</p>
+            </div>
+            <div class="bg-surface border border-slate-200 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500">Check-outs</p>
+                <p class="text-2xl font-serif font-bold text-marine mt-1">6</p>
+            </div>
+            <div class="bg-surface border border-slate-200 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500">Habitaciones activas</p>
+                <p class="text-2xl font-serif font-bold text-marine mt-1">6 <span class="text-base text-slate-400">/ 10</span></p>
+            </div>
+            <div class="bg-surface border border-slate-200 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500">Ocupación promedio</p>
+                <p class="text-2xl font-serif font-bold text-marine mt-1">72%</p>
+            </div>
+        </section>
+
+        <!-- Per-room cards — ALL events in the 7-day window; rooms without events hidden -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <script>
+                // Same data source as the dashboard widget; this view shows the full list per room.
+                const calendarWeekRooms = [
+                    ['H1', [['hoy 14:00','M. Bordeaux','in'],['mié 21 may 11:00','M. Bordeaux','out'],['mié 21 may 16:00','I. Newton','in']]],
+                    ['H4', [['mañana 11:00','J. Dempsey','out'],['mañana 16:00','S. Vallve','in'],['vie 22 may 10:30','S. Vallve','out']]],
+                    ['H5', [['hoy 17:00','I. Hume','in'],['lun 19 may 11:00','I. Hume','out'],['lun 19 may 15:00','P. Soto','in'],['jue 22 may 11:00','P. Soto','out']]],
+                    ['H8', [['mañana 15:00','N. Guerra','in'],['sáb 17 may 11:00','N. Guerra','out']]],
+                    ['H9', [['jue 21 may 14:00','C. Avilés','in']]],
+                    ['H10', [['dom 18 may 14:00','M. Pereira','in'],['mar 20 may 11:00','M. Pereira','out']]],
+                    // H2, H3, H6, H7 have no events this week → filtered out.
+                ];
+                calendarWeekRooms.filter(([_, ev]) => ev.length > 0).forEach(([room, events]) => {
+                    const inCount = events.filter(e => e[2] === 'in').length;
+                    const outCount = events.filter(e => e[2] === 'out').length;
+                    const rows = events.map(([when, who, kind]) => {
+                        const color = kind === 'in' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-terracotta bg-terracotta/5 border-terracotta/20';
+                        const label = kind === 'in' ? 'Entrada' : 'Salida';
+                        const arrow = kind === 'in' ? '→' : '←';
+                        return `<li class="flex items-center gap-3 px-3 py-2 rounded-md border ${color}">
+                            <span class="font-mono text-base">${arrow}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[11px] uppercase font-bold tracking-wider opacity-70">${label}</p>
+                                <p class="text-sm font-semibold truncate">${when}</p>
+                                <p class="text-xs opacity-80 truncate">${who}</p>
+                            </div>
+                        </li>`;
+                    }).join('');
+                    document.write(`
+                    <article class="bg-surface border border-slate-200 rounded-xl p-4 shadow-sm hover:border-marine hover:shadow-md transition">
+                        <header class="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
+                            <span class="font-serif text-marine text-xl">${room}</span>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider">↑${inCount} · ↓${outCount}</span>
+                        </header>
+                        <ul class="space-y-2">${rows}</ul>
+                    </article>`);
+                });
+            </script>
+        </section>
+
+        <p class="text-xs text-slate-400">Habitaciones sin eventos en la ventana seleccionada se ocultan. Para planificar más allá, cambia el rango con los botones de arriba. Datos sincronizados desde Cloudbeds los domingos.</p>
+    </main>
+
+    <!-- ─── ROLES & PERMISSIONS ──────────────────────────────────────────────── -->
+    <main id="view-roles" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <div class="flex items-center justify-between">
+            <h2 class="font-serif text-marine text-2xl">Roles & Permisos</h2>
+            <button class="bg-marine hover:bg-marine-soft text-white px-5 py-2 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm transition">+ Nuevo rol</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 flex-grow">
+            <!-- Left: roles list -->
+            <aside class="lg:col-span-2 bg-surface border border-slate-200 rounded-xl shadow-sm p-2 flex flex-col">
+                <div class="px-3 py-2 text-[10px] uppercase tracking-widest text-slate-400 font-bold">Roles existentes</div>
+                <ul class="space-y-1 flex-grow overflow-y-auto">
+                    <script>
+                        const roles = [
+                            ['Administrador', 3, true, 'Acceso completo · todos los permisos'],
+                            ['Recepcionista', 5, false, 'Operación diaria · check-in / out / fichas'],
+                            ['Asistente', 2, false, 'Lectura · sin escritura'],
+                            ['Auditor (nuevo)', 0, false, 'Solo lectura · reportes y dashboards'],
+                        ];
+                        roles.forEach(([name, n, active, desc]) => document.write(`
+                        <li class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition ${active ? 'bg-marine text-white' : 'hover:bg-cream'}">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-sm truncate">${name}</p>
+                                <p class="text-[11px] ${active ? 'text-cream/70' : 'text-slate-500'} truncate">${desc}</p>
+                            </div>
+                            <span class="text-[10px] uppercase tracking-wider font-bold ${active ? 'text-cream/80' : 'text-slate-400'}">${n} miembros</span>
+                        </li>`));
+                    </script>
+                </ul>
+            </aside>
+
+            <!-- Right: editor -->
+            <section class="lg:col-span-3 bg-surface border border-slate-200 rounded-xl shadow-sm p-6 flex flex-col">
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Nombre del rol</label>
+                        <input type="text" value="Administrador" class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Descripción</label>
+                        <input type="text" value="Acceso completo · todos los permisos" class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                    </div>
+                </div>
+
+                <div class="flex-grow overflow-y-auto pr-1 space-y-5 border-t border-slate-100 pt-5">
+                    <script>
+                        const permGroups = [
+                            ['Huéspedes (lectura/escritura)', 'guest', [['guest.read','Ver lista y detalle',true],['guest.write','Editar manualmente (admin)',true],['guest.delete','Eliminar registros',true]]],
+                            ['Reservas', 'booking', [['booking.read','Ver reservas',true],['booking.write','Crear / modificar reservas',true]]],
+                            ['Gastos adicionales', 'expense', [['expense.read','Ver gastos',true],['expense.write','Agregar / eliminar gastos',true]]],
+                            ['Dashboard', 'dashboard', [['dashboard.read','Ver KPIs y reportes',true]]],
+                            ['Usuarios y roles', 'user', [['user.invite','Invitar nuevos usuarios',true],['user.manage','Editar roles y permisos',true]]],
+                            ['Fichas (turnos)', 'sheet', [['sheet.read','Ver fichas anteriores',true],['sheet.write','Reclamar y editar turno propio',true]]],
+                            ['Categorías y settings globales', 'category', [['category.manage','Editar categorías y taxonomía',true]]],
+                        ];
+                        permGroups.forEach(([title, scope, perms]) => {
+                            const rows = perms.map(([key, label, on]) => `
+                                <label class="flex items-center justify-between gap-3 py-2 px-3 hover:bg-cream rounded cursor-pointer">
+                                    <span class="text-sm text-ink">${label} <span class="font-mono text-[10px] text-slate-400">${key}</span></span>
+                                    <input type="checkbox" ${on ? 'checked' : ''} class="w-4 h-4 rounded border-slate-300 text-marine focus:ring-marine">
+                                </label>`).join('');
+                            document.write(`
+                            <div>
+                                <div class="flex items-center justify-between mb-2 px-3">
+                                    <h4 class="text-xs font-bold uppercase tracking-widest text-marine">${title}</h4>
+                                    <div class="flex gap-2 text-[10px] uppercase font-bold tracking-wider">
+                                        <button class="text-marine hover:underline">Todos</button>
+                                        <span class="text-slate-300">|</span>
+                                        <button class="text-slate-500 hover:underline">Ninguno</button>
+                                    </div>
+                                </div>
+                                <div class="border border-slate-100 rounded-lg divide-y divide-slate-50">${rows}</div>
+                            </div>`);
+                        });
+                    </script>
+                </div>
+
+                <div class="pt-5 mt-5 border-t border-slate-100 flex items-center justify-between">
+                    <button class="text-terracotta text-xs font-bold uppercase tracking-wider hover:underline">Eliminar rol</button>
+                    <button class="bg-marine hover:bg-marine-soft text-white px-8 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm transition">Guardar rol</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ─── PROFILES (USERS) ─────────────────────────────────────────────────── -->
+    <main id="view-profiles" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <div class="flex items-center justify-between gap-4">
+            <h2 class="font-serif text-marine text-2xl">Perfiles</h2>
+            <button onclick="openCreateUserModal()" class="bg-marine hover:bg-marine-soft text-white px-5 py-2 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm transition shrink-0">
+                + Crear usuario
+            </button>
+        </div>
+
+        <!-- Desktop table grouped by role -->
+        <div class="hidden md:block bg-surface border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <script>
+                const groups = [
+                    ['Administradores', 'marine', [
+                        ['MA','María Acuña','maria@hotelsomerscales.cl', 28],
+                        ['CR','Carlos Rivas','carlos@hotelsomerscales.cl', 14],
+                        ['SL','Sofía Lara','sofia@hotelsomerscales.cl', 9],
+                    ]],
+                    ['Recepcionistas', 'terracotta', [
+                        ['DC','Diego Castro','diego@hotelsomerscales.cl', 56],
+                        ['VP','Valentina Pino','valentina@hotelsomerscales.cl', 47],
+                        ['JM','Joaquín Méndez','joaquin@hotelsomerscales.cl', 31],
+                        ['CR','Camila Rojas','camila@hotelsomerscales.cl', 22],
+                        ['NS','Nicolás Soto','nicolas@hotelsomerscales.cl', 5],
+                    ]],
+                    ['Asistentes', 'gold', [
+                        ['MV','Matías Vidal','matias@hotelsomerscales.cl', 0],
+                        ['IF','Isidora Fuentes','isidora@hotelsomerscales.cl', 2],
+                    ]],
+                ];
+                groups.forEach(([groupName, color, users]) => {
+                    document.write(`
+                    <div class="border-b border-slate-100 last:border-0">
+                        <div class="bg-cream px-6 py-2.5 flex items-center justify-between">
+                            <h3 class="text-[11px] font-bold uppercase tracking-widest text-${color}">${groupName} <span class="text-slate-400 font-mono ml-1">· ${users.length}</span></h3>
+                            <button class="text-[10px] text-slate-400 uppercase tracking-wider hover:text-marine">Colapsar ▾</button>
+                        </div>
+                        <table class="w-full text-left text-sm">
+                            <tbody class="divide-y divide-slate-100">`);
+                    users.forEach(([ini, name, email, sheets]) => {
+                        document.write(`
+                            <tr class="hover:bg-cream transition">
+                                <td class="px-6 py-3 flex items-center gap-3">
+                                    <span class="w-9 h-9 rounded-full bg-${color}/15 border border-${color}/30 flex items-center justify-center text-${color} font-bold text-xs">${ini}</span>
+                                    <span class="font-semibold text-ink cursor-pointer hover:underline" onclick="switchView('user-settings')">${name}</span>
+                                </td>
+                                <td class="px-6 py-3 text-slate-500">${email}</td>
+                                <td class="px-6 py-3"><button class="text-[11px] uppercase tracking-wider text-marine hover:underline font-bold">Resetear contraseña</button></td>
+                                <td class="px-6 py-3 text-slate-600 font-mono">${sheets} fichas</td>
+                                <td class="px-6 py-3 text-right">
+                                    <button class="p-1 text-slate-400 hover:text-marine" title="Editar"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+                                    <button class="p-1 text-slate-400 hover:text-terracotta" title="Eliminar"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg></button>
+                                </td>
+                            </tr>`);
+                    });
+                    document.write(`</tbody></table></div>`);
+                });
+            </script>
+        </div>
+
+        <!-- Mobile stacked cards -->
+        <div class="md:hidden space-y-4">
+            <script>
+                groups.forEach(([groupName, color, users]) => {
+                    document.write(`<div>
+                        <h3 class="text-[11px] font-bold uppercase tracking-widest text-${color} mb-2 px-1">${groupName} · ${users.length}</h3>
+                        <div class="space-y-2">`);
+                    users.forEach(([ini, name, email, sheets]) => {
+                        document.write(`
+                            <div class="bg-surface border border-slate-200 rounded-xl p-4 shadow-sm">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="w-10 h-10 rounded-full bg-${color}/15 border border-${color}/30 flex items-center justify-center text-${color} font-bold">${ini}</span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-semibold text-ink truncate">${name}</p>
+                                        <p class="text-xs text-slate-500 truncate">${email}</p>
+                                    </div>
+                                    <button class="p-1 text-slate-400" title="Más"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01"/></svg></button>
+                                </div>
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-500"><span class="font-mono font-bold text-ink">${sheets}</span> fichas</span>
+                                    <button class="text-marine font-bold uppercase tracking-wider hover:underline">Resetear contraseña</button>
+                                </div>
+                            </div>`);
+                    });
+                    document.write(`</div></div>`);
+                });
+            </script>
+        </div>
+    </main>
+
+    <!-- ─── CREATE USER MODAL ────────────────────────────────────────────────── -->
+    <div id="create-user-modal" class="hidden-view fixed inset-0 z-[55] flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm" onclick="closeCreateUserModal()">
+        <div class="bg-surface rounded-2xl shadow-2xl max-w-md w-full p-8 modal-enter" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="font-serif text-marine text-xl">Crear nuevo usuario</h3>
+                <button onclick="closeCreateUserModal()" class="text-slate-400 hover:text-ink p-1" aria-label="Cerrar">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form class="space-y-4" onsubmit="event.preventDefault(); closeCreateUserModal();">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Nombre completo</label>
+                    <input type="text" required class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Email</label>
+                    <input type="email" required class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine" placeholder="usuario@hotelsomerscales.cl">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Rol asignado</label>
+                    <select class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                        <option>Recepcionista</option>
+                        <option>Asistente</option>
+                        <option>Administrador</option>
+                        <option>Auditor</option>
+                    </select>
+                </div>
+                <p class="text-xs text-slate-500 bg-cream p-3 rounded-lg">Se enviará un correo al usuario con un enlace para definir su contraseña.</p>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeCreateUserModal()" class="px-5 py-2 text-sm text-slate-600 hover:text-marine font-semibold">Cancelar</button>
+                    <button type="submit" class="bg-marine hover:bg-marine-soft text-white px-5 py-2 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm transition">Enviar invitación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── SHEETS LIST (FICHAS) ─────────────────────────────────────────────── -->
+    <main id="view-sheets" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <div class="flex items-center justify-between gap-4">
+            <h2 class="font-serif text-marine text-2xl">Fichas de turno</h2>
+        </div>
+
+        <!-- Hero: today's shift -->
+        <section class="bg-marine text-cream rounded-xl p-5 sm:p-6 shadow-md">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest text-cream/70">Turno actual</p>
+                    <p class="font-serif text-2xl mt-1">Viernes 16 de mayo · Mañana</p>
+                    <p class="text-sm text-cream/80 mt-1">Aún sin reclamar — sé la primera persona en abrir la ficha del turno.</p>
+                </div>
+                <button onclick="switchView('sheet-edit')" class="bg-cream text-marine hover:bg-white px-6 py-3 rounded-full text-xs font-bold tracking-wider uppercase shadow-md transition shrink-0">
+                    Reclamar turno mañana
+                </button>
+            </div>
+        </section>
+
+        <!-- Past sheets list -->
+        <section>
+            <h3 class="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3 px-1">Fichas anteriores</h3>
+            <div class="bg-surface border border-slate-200 rounded-xl shadow-sm divide-y divide-slate-100">
+                <script>
+                    const pastSheets = [
+                        ['15 may', 'Noche', 'María Acuña', '22 reportes · notas (calefacción + cuadro cocina)'],
+                        ['15 may', 'Mañana', 'Diego Castro', '22 reportes · notas'],
+                        ['14 may', 'Noche', 'Valentina Pino', '22 reportes · notas'],
+                        ['14 may', 'Mañana', 'Diego Castro', '22 reportes · notas (reposición agua)'],
+                        ['13 may', 'Noche', 'Joaquín Méndez', '22 reportes · notas'],
+                        ['13 may', 'Mañana', 'Camila Rojas', '22 reportes · sin notas'],
+                    ];
+                    pastSheets.forEach(([date, shift, who, summary]) => {
+                        const shiftColor = shift === 'Mañana' ? 'bg-gold/15 text-gold border-gold/30' : 'bg-marine/15 text-marine border-marine/30';
+                        document.write(`
+                        <button onclick="switchView('sheet-summary')" class="w-full text-left px-5 py-4 flex items-center gap-4 hover:bg-cream transition">
+                            <div class="text-center shrink-0">
+                                <p class="font-serif text-marine text-lg leading-tight">${date}</p>
+                                <span class="inline-block mt-1 px-2 py-0.5 ${shiftColor} border rounded-full text-[10px] uppercase font-bold tracking-wider">${shift}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-ink truncate">${who}</p>
+                                <p class="text-xs text-slate-500 truncate">${summary}</p>
+                            </div>
+                            <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>`);
+                    });
+                </script>
+            </div>
+        </section>
+    </main>
+
+    <!-- ─── SHEET EDIT (FICHA EDITOR) ────────────────────────────────────────── -->
+    <main id="view-sheet-edit" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-3xl mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <header class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500">Editando ficha · auto-guardado activo</p>
+                <h2 class="font-serif text-marine text-2xl mt-1">Viernes 16 de mayo · <span class="text-gold">Mañana</span></h2>
+                <p class="text-xs text-slate-500 mt-1">A cargo: <span class="font-semibold text-ink">María Acuña</span></p>
+            </div>
+            <button class="bg-terracotta hover:bg-terracotta/90 text-white px-5 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm transition shrink-0">
+                Guardar y entregar turno
+            </button>
+        </header>
+
+        <!-- Section A: 22 reportes -->
+        <section class="bg-surface border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between bg-cream">
+                <h3 class="font-serif text-marine text-lg">Reportes del turno</h3>
+                <span class="text-[10px] uppercase tracking-widest text-slate-400">22 filas estándar</span>
+            </div>
+            <div class="divide-y divide-slate-100">
+                <script>
+                    const reportRows = [
+                        ['Check in', null, 'H1 y H6'],
+                        ['Check out', null, 'H1'],
+                        ['Late check out', null, ''],
+                        ['Early check in', null, ''],
+                        ['Desayunos', ['2 desayunos','1 desayuno H7 8:15','sin servicio'], ''],
+                        ['Secando', ['Toallas','Cobertor','Toallas + Cobertor','Juegos de toallas','sin novedad'], ''],
+                        ['Lavando', ['Sábanas','Toallas','Cobertor','sin novedad'], ''],
+                        ['Cama extra', ['1 cama extra','2 camas extra','sin novedad'], ''],
+                        ['Lavandería', ['Retiro AM','Entrega PM','sin novedad'], ''],
+                        ['Ventas', null, ''],
+                        ['Dinero recibido en caja chica', null, ''],
+                        ['Dinero recibido de ventas en efectivo', null, ''],
+                        ['Registro de compras recibidas', null, ''],
+                        ['Registro de correspondencia o encomiendas', null, ''],
+                        ['Registro de pertenencias olvidadas', null, ''],
+                        ['Estacionamiento', ['E-Hotel','E-Capilla','PAX sin auto'], 'H1 E-Hotel'],
+                        ['Requerimientos', ['sin novedad','reposición leña','reposición agua'], ''],
+                        ['Mails', null, ''],
+                        ['Agua', ['AGUA NOAH repone N bidones','sin novedad'], ''],
+                        ['Café', ['Sin novedad','Stock bajo (< 500g)','Café en grano agotado'], ''],
+                        ['Reclamos', ['sin reclamos'], ''],
+                        ['Recibí turno', ['Sí · Basura sacada · Recibido diario','Sí con observaciones (ver notas)','Pendiente'], 'Sí · Basura sacada · Recibido diario'],
+                    ];
+                    reportRows.forEach(([label, chips, value]) => {
+                        const chipsHtml = chips ? `<div class="flex flex-wrap gap-1.5 mt-2">${chips.map(c => `<button type="button" class="text-[10px] px-2 py-1 bg-marine/5 text-marine border border-marine/20 rounded-full hover:bg-marine hover:text-white transition">${c}</button>`).join('')}</div>` : '';
+                        document.write(`
+                        <div class="px-5 py-3 flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                            <label class="sm:w-56 shrink-0 text-xs font-semibold text-slate-700 sm:py-2">${label}</label>
+                            <div class="flex-1">
+                                <input type="text" value="${value}" placeholder="${chips ? 'Toca un chip o escribe…' : '—'}" class="w-full bg-cream border border-slate-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                                ${chipsHtml}
+                            </div>
+                        </div>`);
+                    });
+                </script>
+            </div>
+        </section>
+
+        <!-- Section B: notas adicionales -->
+        <section class="bg-surface border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-5 py-3 border-b border-slate-100 bg-cream">
+                <h3 class="font-serif text-marine text-lg">Notas</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Cualquier observación, incidente o contexto adicional del turno.</p>
+            </div>
+            <div class="p-5">
+                <textarea rows="8" class="w-full bg-cream border border-slate-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine resize-y leading-relaxed" placeholder="Ej: Pasajero H5 pidió cambio de almohada · Se cayó cuadro en cocina, se reparó · Calefacción se apagó automáticamente a las 01:30 (alarma activada) · Sin reclamos.">Desayuno H1 a las 08:45. Check-out H1 11:30 sin consumo, sacó auto E-Hotel. Reunión gerencia 11:40. Se guarda toda la leña de la camioneta en garage hotel. Agua Noah repone 4 bidones a las 15:15. Check-in H1 y H6 16:50 sin auto, pago saldo $145.235 c/débito Nº 1413.</textarea>
+            </div>
+        </section>
+    </main>
+
+    <!-- ─── SHEET SUMMARY (READ-ONLY FICHA) ──────────────────────────────────── -->
+    <main id="view-sheet-summary" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-3xl mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <header class="bg-surface border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500">Ficha entregada · solo lectura</p>
+                <h2 class="font-serif text-marine text-2xl mt-1">Jueves 15 de mayo · <span class="text-marine">Noche</span></h2>
+                <p class="text-xs text-slate-500 mt-1">A cargo: <span class="font-semibold text-ink">María Acuña</span> · Entregada: <span class="font-mono">07:00 hrs</span></p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+                <button class="bg-cream border border-slate-200 hover:border-marine text-marine px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase transition">Imprimir</button>
+                <button class="bg-marine hover:bg-marine-soft text-white px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm transition">Exportar PDF</button>
+            </div>
+        </header>
+
+        <section class="bg-surface border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-5 py-3 border-b border-slate-100 bg-cream">
+                <h3 class="font-serif text-marine text-lg">Reportes</h3>
+            </div>
+            <table class="w-full text-sm">
+                <tbody class="divide-y divide-slate-100">
+                    <tr><td class="px-5 py-2.5 font-semibold text-slate-700 w-1/2">Check in</td><td class="px-5 py-2.5 text-slate-600">H1 Bordeaux 14:00</td></tr>
+                    <tr><td class="px-5 py-2.5 font-semibold text-slate-700">Check out</td><td class="px-5 py-2.5 text-slate-600">H4 Dempsey 8:30 · H7 Vallve 9:30</td></tr>
+                    <tr><td class="px-5 py-2.5 font-semibold text-slate-700">Desayunos</td><td class="px-5 py-2.5 text-slate-600">H7 — H4 8:15</td></tr>
+                    <tr><td class="px-5 py-2.5 font-semibold text-slate-700">Secando</td><td class="px-5 py-2.5 text-slate-600">Toallas + Cobertor</td></tr>
+                    <tr><td class="px-5 py-2.5 font-semibold text-slate-700">Estacionamiento</td><td class="px-5 py-2.5 text-slate-600">H1 E-Hotel</td></tr>
+                    <tr><td class="px-5 py-2.5 font-semibold text-slate-700">Agua</td><td class="px-5 py-2.5 text-slate-600">Chume 1 mineral con gas</td></tr>
+                    <tr><td class="px-5 py-2.5 font-semibold text-slate-700">Café</td><td class="px-5 py-2.5 text-slate-600">Chume 2 café expresso · gerencia 2 café americano</td></tr>
+                    <tr><td class="px-5 py-2.5 font-semibold text-slate-700">Recibí turno</td><td class="px-5 py-2.5 text-slate-600">Sí · Basura sacada · Recibido diario</td></tr>
+                    <tr><td class="px-5 py-2.5 font-semibold text-slate-400 italic" colspan="2">14 filas adicionales sin novedad</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="bg-surface border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-5 py-3 border-b border-slate-100 bg-cream">
+                <h3 class="font-serif text-marine text-lg">Notas</h3>
+            </div>
+            <p class="p-5 text-sm text-slate-700 leading-relaxed whitespace-pre-line">Se enciende calefacción 20:00. Todos los pasajeros en el hotel a las 20:40. Se ordenan toallas y cobertor 22:00. Llegada H5 a las 00:30 — habitación apagada. Se apaga calefacción 01:30. Llega diurno 07:00. Sin reclamos.</p>
+        </section>
+    </main>
+
+    <!-- ─── GLOBAL SETTINGS (admin) ──────────────────────────────────────────── -->
+    <main id="view-settings-global" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <div class="flex items-center justify-between">
+            <h2 class="font-serif text-marine text-2xl">Settings globales</h2>
+            <span class="text-[10px] uppercase tracking-widest text-slate-400">Solo administradores</span>
+        </div>
+
+        <nav class="flex gap-1 border-b border-slate-200 overflow-x-auto -mx-4 px-4 scroll-snap">
+            <button class="text-marine border-b-2 border-terracotta px-4 py-2.5 text-sm font-bold whitespace-nowrap">Categorías</button>
+            <button class="text-slate-500 hover:text-marine border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold whitespace-nowrap">Sincronización Cloudbeds</button>
+            <button class="text-slate-500 hover:text-marine border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold whitespace-nowrap">Taxonomía sentimiento</button>
+            <button class="text-slate-500 hover:text-marine border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold whitespace-nowrap">Por defecto</button>
+        </nav>
+
+        <!-- Categories tab content -->
+        <section class="bg-surface border border-slate-200 rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h3 class="font-serif text-marine text-lg">Categorías de comentarios</h3>
+                    <p class="text-xs text-slate-500 mt-1">Las reseñas se reclasificarán con Gemini al guardar cambios.</p>
+                </div>
+                <button class="bg-marine hover:bg-marine-soft text-white px-4 py-2 rounded-full text-[11px] font-bold tracking-wider uppercase shadow-sm transition">+ Nueva categoría</button>
+            </div>
+            <ul class="border border-slate-100 rounded-lg divide-y divide-slate-50">
+                <script>
+                    const cats = ['Limpieza','Desayuno','Atención','Vista','Ruido','Ubicación','WiFi','Patrimonio','Estacionamiento','Aire acondicionado'];
+                    cats.forEach((c, i) => document.write(`
+                    <li class="flex items-center justify-between px-4 py-2.5 hover:bg-cream">
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-400 font-mono text-xs w-6">${(i+1).toString().padStart(2,'0')}</span>
+                            <span class="text-sm font-semibold text-ink">${c}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="text-[11px] text-marine hover:underline">Editar</button>
+                            <button class="text-[11px] text-terracotta hover:underline">Eliminar</button>
+                        </div>
+                    </li>`));
+                </script>
+            </ul>
+            <div class="mt-5 pt-5 border-t border-slate-100 flex justify-end gap-3">
+                <button class="px-4 py-2 text-sm text-slate-600 hover:text-marine font-semibold">Cancelar</button>
+                <button class="bg-marine hover:bg-marine-soft text-white px-5 py-2 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm transition">Guardar y reclasificar</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- ─── USER SETTINGS (own profile) ──────────────────────────────────────── -->
+    <main id="view-user-settings" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-2xl mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <div class="flex items-center justify-between">
+            <h2 class="font-serif text-marine text-2xl">Mi perfil</h2>
+            <button onclick="closeMoreDrawer(); switchView('login');" class="text-terracotta text-xs font-bold uppercase tracking-wider hover:underline">Cerrar sesión</button>
+        </div>
+
+        <section class="bg-surface border border-slate-200 rounded-xl shadow-sm p-6 sm:p-8">
+            <div class="flex items-center gap-5 mb-8">
+                <div class="relative">
+                    <div class="w-20 h-20 rounded-full bg-gold/20 border-2 border-gold/40 flex items-center justify-center text-marine font-serif text-2xl shadow-sm">MA</div>
+                    <button class="absolute bottom-0 right-0 w-7 h-7 bg-marine text-white rounded-full flex items-center justify-center shadow-md hover:bg-marine-soft transition" aria-label="Cambiar foto">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </button>
+                </div>
+                <div>
+                    <p class="font-serif text-marine text-xl">María Acuña</p>
+                    <p class="text-xs text-slate-500">Administrador</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Miembro desde 11 may 2026</p>
+                </div>
+            </div>
+
+            <form class="space-y-5" onsubmit="event.preventDefault();">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Nombre completo</label>
+                    <input type="text" value="María Acuña" class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Email</label>
+                    <input type="email" value="maria@hotelsomerscales.cl" class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Teléfono</label>
+                    <input type="tel" value="+56 9 1234 5678" class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine focus:ring-1 focus:ring-marine">
+                </div>
+
+                <fieldset class="border border-slate-200 rounded-lg p-4">
+                    <legend class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2">Cambiar contraseña</legend>
+                    <div class="space-y-3 pt-2">
+                        <input type="password" placeholder="Contraseña actual" class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine">
+                        <input type="password" placeholder="Nueva contraseña" class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine">
+                        <input type="password" placeholder="Confirmar nueva" class="w-full bg-cream border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-marine">
+                    </div>
+                </fieldset>
+
+                <fieldset class="border border-slate-200 rounded-lg p-4">
+                    <legend class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2">Apariencia</legend>
+                    <div class="grid grid-cols-3 gap-2 pt-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="theme" value="light" checked class="peer sr-only">
+                            <div class="border-2 border-slate-200 peer-checked:border-marine rounded-lg p-3 text-center">
+                                <div class="h-12 bg-cream border border-slate-300 rounded mb-2"></div>
+                                <span class="text-xs font-semibold text-slate-700">Claro</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="theme" value="dark" class="peer sr-only">
+                            <div class="border-2 border-slate-200 peer-checked:border-marine rounded-lg p-3 text-center">
+                                <div class="h-12 bg-marine-deep border border-marine rounded mb-2"></div>
+                                <span class="text-xs font-semibold text-slate-700">Oscuro</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="theme" value="system" class="peer sr-only">
+                            <div class="border-2 border-slate-200 peer-checked:border-marine rounded-lg p-3 text-center">
+                                <div class="h-12 bg-gradient-to-r from-cream to-marine-deep border border-slate-300 rounded mb-2"></div>
+                                <span class="text-xs font-semibold text-slate-700">Sistema</span>
+                            </div>
+                        </label>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-3">Modo oscuro útil para turno de noche en recepción.</p>
+                </fieldset>
+
+                <div class="pt-2 flex justify-end gap-3">
+                    <button type="button" class="px-5 py-2 text-sm text-slate-600 hover:text-marine font-semibold">Descartar</button>
+                    <button type="submit" class="bg-marine hover:bg-marine-soft text-white px-6 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm transition">Guardar cambios</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <!-- ─── CLIENT DETAIL (read-only, Cloudbeds-sourced) ─────────────────────── -->
+    <main id="view-client-detail" class="hidden-view px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto w-full flex-grow flex flex-col gap-6 pb-8">
+        <div class="bg-marine/5 border border-marine/20 rounded-lg px-4 py-2.5 text-xs text-marine flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Datos sincronizados desde Cloudbeds · último sync: <span class="font-semibold">domingo 12 may 03:00</span> · solo lectura
+        </div>
+
+        <header class="bg-surface border border-slate-200 rounded-xl shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-5">
+            <div class="w-20 h-20 rounded-full bg-marine/15 border-2 border-marine/30 flex items-center justify-center text-marine font-serif text-2xl shadow-sm shrink-0">IH</div>
+            <div class="flex-1 min-w-0">
+                <h2 class="font-serif text-marine text-2xl">Ignacio Hume</h2>
+                <p class="text-sm text-slate-500">info@hotelsomerscales.cl · +56 9 — — — —</p>
+                <p class="text-xs text-slate-400 mt-1">RUT (encriptado) · Chile · Región Metropolitana</p>
+            </div>
+            <div class="flex gap-6 sm:flex-col sm:text-right">
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest text-slate-500">Visitas</p>
+                    <p class="font-serif text-marine text-2xl">12</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest text-slate-500">Gasto total</p>
+                    <p class="font-serif text-marine text-2xl">CLP $1.450.000</p>
+                </div>
+            </div>
+        </header>
+
+        <section class="bg-surface border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-5 py-3 border-b border-slate-100 bg-cream flex items-center justify-between">
+                <h3 class="font-serif text-marine text-lg">Reservas anteriores</h3>
+                <span class="text-[10px] uppercase tracking-widest text-slate-400">12 reservas</span>
+            </div>
+            <table class="w-full text-sm hidden md:table">
+                <thead class="bg-slate-50 text-[10px] uppercase tracking-widest text-slate-500">
+                    <tr><th class="px-5 py-2.5 text-left">Llegada</th><th class="px-5 py-2.5 text-left">Salida</th><th class="px-5 py-2.5 text-left">Habitación</th><th class="px-5 py-2.5 text-left">Origen</th><th class="px-5 py-2.5 text-right">Total</th></tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr class="hover:bg-cream cursor-pointer"><td class="px-5 py-2.5">14 may 2026</td><td class="px-5 py-2.5">17 may 2026</td><td class="px-5 py-2.5 font-mono">H5</td><td class="px-5 py-2.5 text-slate-500">Cortesía</td><td class="px-5 py-2.5 text-right text-slate-600">CLP $0</td></tr>
+                    <tr class="hover:bg-cream cursor-pointer"><td class="px-5 py-2.5">02 abr 2026</td><td class="px-5 py-2.5">04 abr 2026</td><td class="px-5 py-2.5 font-mono">H1</td><td class="px-5 py-2.5 text-slate-500">Booking.com</td><td class="px-5 py-2.5 text-right text-slate-600">CLP $185.000</td></tr>
+                    <tr class="hover:bg-cream cursor-pointer"><td class="px-5 py-2.5">15 feb 2026</td><td class="px-5 py-2.5">18 feb 2026</td><td class="px-5 py-2.5 font-mono">H7</td><td class="px-5 py-2.5 text-slate-500">Directo</td><td class="px-5 py-2.5 text-right text-slate-600">CLP $245.000</td></tr>
+                    <tr class="hover:bg-cream cursor-pointer"><td class="px-5 py-2.5">08 dic 2025</td><td class="px-5 py-2.5">10 dic 2025</td><td class="px-5 py-2.5 font-mono">H5</td><td class="px-5 py-2.5 text-slate-500">TripAdvisor</td><td class="px-5 py-2.5 text-right text-slate-600">CLP $165.000</td></tr>
+                </tbody>
+            </table>
+            <ul class="md:hidden divide-y divide-slate-100">
+                <li class="px-5 py-3 flex items-center justify-between">
+                    <div><p class="text-sm font-semibold text-ink">14 may → 17 may</p><p class="text-xs text-slate-500 font-mono">H5 · Cortesía</p></div>
+                    <span class="text-sm font-semibold">CLP $0</span>
+                </li>
+                <li class="px-5 py-3 flex items-center justify-between">
+                    <div><p class="text-sm font-semibold text-ink">02 abr → 04 abr</p><p class="text-xs text-slate-500 font-mono">H1 · Booking.com</p></div>
+                    <span class="text-sm font-semibold">CLP $185.000</span>
+                </li>
+                <li class="px-5 py-3 flex items-center justify-between">
+                    <div><p class="text-sm font-semibold text-ink">15 feb → 18 feb</p><p class="text-xs text-slate-500 font-mono">H7 · Directo</p></div>
+                    <span class="text-sm font-semibold">CLP $245.000</span>
+                </li>
+            </ul>
+        </section>
+    </main>
+
+    <!-- ─── MOBILE NAV DRAWER (slides in from left, hamburger-triggered) ─────── -->
+    <div id="nav-drawer" class="hidden-view fixed inset-0 z-[55] flex md:hidden" onclick="closeNavDrawer()">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-ink/40 backdrop-blur-sm drawer-backdrop-enter"></div>
+
+        <!-- Side panel: ~80vw, max 320px, slides in from left -->
+        <aside class="relative bg-surface w-[85vw] max-w-[320px] h-full shadow-2xl drawer-enter overflow-y-auto" onclick="event.stopPropagation()">
+            <!-- Header: brand + close -->
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 bg-marine rounded-full flex items-center justify-center">
+                        <span class="font-serif text-white text-lg leading-none -mt-0.5">S</span>
+                    </div>
+                    <span class="font-serif text-marine text-lg">Somerscales</span>
+                </div>
+                <button onclick="closeNavDrawer()" class="p-1 text-slate-400 hover:text-ink" aria-label="Cerrar menú">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- User card -->
+            <div class="flex items-center gap-3 px-5 py-4 bg-cream/40">
+                <div class="w-11 h-11 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center text-marine font-serif text-base">MA</div>
+                <div class="min-w-0">
+                    <p class="font-semibold text-ink truncate">María Acuña</p>
+                    <p class="text-xs text-slate-500">Administrador</p>
+                </div>
+            </div>
+
+            <!-- Primary navigation -->
+            <nav class="px-3 py-3 space-y-1">
+                <p class="px-2 pb-1 text-[10px] uppercase tracking-widest text-slate-400 font-bold">Navegación</p>
+                <button onclick="closeNavDrawer(); switchView('dashboard')" data-nav-mobile="dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-cream text-ink">
+                    <svg class="w-5 h-5 text-marine" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span class="font-semibold flex-1">Dashboard</span>
+                </button>
+                <button onclick="closeNavDrawer(); switchView('calendar')" data-nav-mobile="calendar" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-cream text-ink">
+                    <svg class="w-5 h-5 text-marine" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span class="font-semibold flex-1">Calendario</span>
+                </button>
+                <button onclick="closeNavDrawer(); switchView('roles')" data-nav-mobile="roles" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-cream text-ink">
+                    <svg class="w-5 h-5 text-marine" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    <span class="font-semibold flex-1">Roles & Permisos</span>
+                </button>
+                <button onclick="closeNavDrawer(); switchView('profiles')" data-nav-mobile="profiles" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-cream text-ink">
+                    <svg class="w-5 h-5 text-marine" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span class="font-semibold flex-1">Perfiles</span>
+                </button>
+                <button onclick="closeNavDrawer(); switchView('sheets')" data-nav-mobile="sheets" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-cream text-ink">
+                    <svg class="w-5 h-5 text-marine" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span class="font-semibold flex-1">Fichas</span>
+                </button>
+            </nav>
+
+            <!-- Secondary -->
+            <nav class="px-3 py-3 space-y-1 border-t border-slate-100">
+                <p class="px-2 pb-1 text-[10px] uppercase tracking-widest text-slate-400 font-bold">Cuenta</p>
+                <button onclick="closeNavDrawer(); switchView('user-settings')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-cream text-ink">
+                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span class="font-semibold flex-1">Mi perfil</span>
+                </button>
+                <button onclick="closeNavDrawer(); switchView('settings-global')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-cream text-ink">
+                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span class="font-semibold flex-1">Settings globales</span>
+                    <span class="text-[10px] uppercase font-bold text-gold">Admin</span>
+                </button>
+                <a href="#" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-cream text-ink">
+                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="font-semibold flex-1">Ayuda</span>
+                </a>
+                <button onclick="closeNavDrawer(); switchView('login')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-terracotta/5 text-terracotta">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span class="font-semibold flex-1">Cerrar sesión</span>
+                </button>
+            </nav>
+        </aside>
+    </div>
+
+    <script>
+        const views = ['login','dashboard','calendar','roles','profiles','sheets','sheet-edit','sheet-summary','settings-global','user-settings','client-detail'];
+
+        function switchView(viewName) {
+            views.forEach(v => document.getElementById('view-' + v).classList.add('hidden-view'));
+            document.getElementById('view-' + viewName).classList.remove('hidden-view');
+
+            const isLogin = viewName === 'login';
+            document.getElementById('shared-header').classList.toggle('hidden-view', isLogin);
+
+            // Highlight active nav (desktop top nav + mobile drawer items)
+            document.querySelectorAll('[data-nav]').forEach(el => {
+                const active = el.dataset.nav === viewName;
+                el.classList.toggle('text-marine', active);
+                el.classList.toggle('border-terracotta', active);
+                el.classList.toggle('border-transparent', !active);
+                if (!active) el.classList.add('text-slate-500'); else el.classList.remove('text-slate-500');
+            });
+            document.querySelectorAll('[data-nav-mobile]').forEach(el => {
+                const active = el.dataset.navMobile === viewName;
+                el.classList.toggle('bg-marine/10', active);
+                el.classList.toggle('text-marine', active);
+            });
+
+            window.scrollTo(0, 0);
+        }
+
+        function openCreateUserModal() {
+            document.getElementById('create-user-modal').classList.remove('hidden-view');
+        }
+        function closeCreateUserModal() {
+            document.getElementById('create-user-modal').classList.add('hidden-view');
+        }
+        function openNavDrawer() {
+            document.getElementById('nav-drawer').classList.remove('hidden-view');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeNavDrawer() {
+            document.getElementById('nav-drawer').classList.add('hidden-view');
+            document.body.style.overflow = '';
+        }
+
+        // Default view: login
+        switchView('login');
+    </script>
+</body>
+</html>
